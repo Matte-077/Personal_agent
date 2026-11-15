@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="it" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Segretario Totale • Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Personalizzazione scrollbar e transizioni fluide */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    .card-hover { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    .card-hover:active { transform: scale(0.98); }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased pb-24">
+
+  <!-- Top Bar -->
+  <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 py-3">
+    <div class="max-w-6xl mx-auto flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl">⚡</span>
+        <div>
+          <h1 class="font-bold text-base md:text-lg leading-tight bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
+            Segretario Totale
+          </h1>
+          <p class="text-xs text-slate-400" id="itemCountLabel">Loading cards...</p>
+        </div>
+      </div>
+
+      <!-- Azioni header -->
+      <div class="flex items-center gap-2">
+        <button onclick="loadItems()" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 text-sm flex items-center gap-1 active:scale-95 transition">
+          🔄 <span class="hidden sm:inline">Refresh</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Ricerca in tempo reale -->
+    <div class="max-w-6xl mx-auto mt-2">
+      <div class="relative">
+        <input
+          type="text"
+          id="searchInput"
+          oninput="handleSearchInput()"
+          placeholder="Search by title, tag, attributes (e.g. laser, pasta, cursor)..."
+          class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-2 pl-10 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition text-slate-100 placeholder-slate-400"
+        />
+        <span class="absolute left-3 top-2.5 text-slate-400 text-sm">🔍</span>
+      </div>
+    </div>
+
+    <!-- Filtri orizzontali categorie (Chips) -->
+    <div class="max-w-6xl mx-auto mt-2 flex gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
+      <button onclick="setCategoryFilter('')" class="cat-pill whitespace-nowrap px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-medium" data-cat="">All</button>
+      <button onclick="setCategoryFilter('Automotive & Annunci Auto')" class="cat-pill whitespace-nowrap px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 font-medium" data-cat="Automotive & Annunci Auto">🚗 Cars</button>
+      <button onclick="setCategoryFilter('Cucina & Alimentazione')" class="cat-pill whitespace-nowrap px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 font-medium" data-cat="Cucina & Alimentazione">🍳 Cooking</button>
+      <button onclick="setCategoryFilter('AI, Tech & Software')" class="cat-pill whitespace-nowrap px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 font-medium" data-cat="AI, Tech & Software">🤖 AI & Tech</button>
+      <button onclick="setCategoryFilter('Produttività, Finanza Personale & Business')" class="cat-pill whitespace-nowrap px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 font-medium" data-cat="Produttività, Finanza Personale & Business">💼 Business</button>
+      <button onclick="setCategoryFilter('Life Hacks, Casa & Fai da Te')" class="cat-pill whitespace-nowrap px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 font-medium" data-cat="Life Hacks, Casa & Fai da Te">💡 Hacks</button>
+      <button onclick="setCategoryFilter('Notizie, Attualità & Economia')" class="cat-pill whitespace-nowrap px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 font-medium" data-cat="Notizie, Attualità & Economia">📰 News</button>
+    </div>
+  </header>
+
+  <!-- Griglia Contenuti Principale -->
+  <main class="max-w-6xl mx-auto px-4 py-4 w-full flex-1">
+    <div id="loadingIndicator" class="text-center py-16 text-slate-400">
+      <div class="inline-block animate-spin text-3xl mb-2">⏳</div>
+      <p class="text-sm">Loading your cards from the database...</p>
+    </div>
+
+    <div id="emptyState" class="hidden text-center py-16 text-slate-400">
+      <span class="text-4xl block mb-2">📂</span>
+      <p class="font-medium text-slate-300">No cards found</p>
+      <p class="text-xs text-slate-500 mt-1">Send links, recipes, or voice notes to the bot to see them here.</p>
+    </div>
+
+    <div id="itemsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- Le card verranno iniettate dinamicamente via JS -->
+    </div>
+  </main>
+
+  <!-- Comparison Floating Bar (visibile quando ci sono elementi selezionati) -->
+  <div id="compareBar" class="fixed bottom-4 left-4 right-4 max-w-xl mx-auto bg-slate-900/95 border border-emerald-500/50 shadow-2xl rounded-2xl p-3 flex items-center justify-between gap-3 z-50 backdrop-blur-lg hidden">
+    <div class="flex items-center gap-2 text-sm">
+      <span class="text-xl">⚖️</span>
+      <div>
+        <span class="font-bold text-emerald-400" id="compareCountLabel">0 selected</span>
+        <span class="text-xs text-slate-400 block">Select 2 cards to compare</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="clearComparison()" class="px-2.5 py-1.5 text-xs text-slate-400 hover:text-white rounded-lg">Cancel</button>
+      <button onclick="openComparisonModal()" id="btnOpenCompare" disabled class="px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-emerald-600 disabled:bg-slate-700 text-white transition active:scale-95 shadow-md">
+        Confronta Ora
+      </button>
+    </div>
+  </div>
+
+  <!-- Comparison Modal Dialog -->
+  <div id="compareModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <h3 class="font-bold text-base flex items-center gap-2">
+          <span>⚖️</span> Side-by-Side Comparison
+        </h3>
+        <button onclick="closeComparisonModal()" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
+      </div>
+      <div class="p-4 overflow-y-auto flex-1 text-sm" id="compareContent">
+        <!-- Contenuto matrice di confronto -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let allItems = [];
+    let selectedForCompare = [];
+    let currentCategory = '';
+    let searchDebounceTimer = null;
+
+    // Rilevamento Telegram WebApp e autenticazione
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      try { tg.expand(); } catch (e) {}
+    }
+
+    function getAuthHeaders() {
+      const headers = { 'Accept': 'application/json' };
+      // Se avviato dentro Telegram WebApp, invia initData
+      if (tg && tg.initData) {
+        headers['X-Telegram-Init-Data'] = tg.initData;
+      }
+      // If accessed from Desktop browser with URL token
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      if (token) {
+        headers['X-Web-Access-Token'] = token;
+      }
+      return headers;
+    }
+
+    async function loadItems() {
+      document.getElementById('loadingIndicator').classList.remove('hidden');
+      document.getElementById('emptyState').classList.add('hidden');
+      document.getElementById('itemsGrid').innerHTML = '';
+
+      try {
+        const res = await fetch('/api/dashboard/items', { headers: getAuthHeaders() });
+        if (!res.ok) {
+          throw new Error('HTTP error ' + res.status);
+        }
+        allItems = await res.json();
+        renderFilteredItems();
+      } catch (err) {
+        console.error('Failed to load cards:', err);
+        document.getElementById('loadingIndicator').classList.add('hidden');
+        document.getElementById('emptyState').classList.remove('hidden');
+        document.getElementById('emptyState').innerHTML = `
+          <span class="text-3xl block mb-2">⚠️</span>
+          <p class="text-red-400 font-medium">Failed to load cards</p>
+          <p class="text-xs text-slate-500 mt-1">Check authentication or open the dashboard from Telegram with /dashboard.</p>
+        `;
+      }
+    }
+
+    function renderFilteredItems() {
+      document.getElementById('loadingIndicator').classList.add('hidden');
+      const query = document.getElementById('searchInput').value.toLowerCase().trim();
+
+      const filtered = allItems.filter(item => {
+        const matchesCat = !currentCategory || item.category === currentCategory;
+        if (!matchesCat) return false;
+
+        if (!query) return true;
+        const title = (item.title || '').toLowerCase();
+        const summary = (item.summary || '').toLowerCase();
+        const tags = (item.tags || []).join(' ').toLowerCase();
+        const metaStr = JSON.stringify(item.metadata || {}).toLowerCase();
+        return title.includes(query) || summary.includes(query) || tags.includes(query) || metaStr.includes(query);
+      });
+
+      document.getElementById('itemCountLabel').textContent = `${filtered.length} ${filtered.length === 1 ? 'card' : 'cards'} available`;
+
+      const grid = document.getElementById('itemsGrid');
+      grid.innerHTML = '';
+
+      if (filtered.length === 0) {
+        document.getElementById('emptyState').classList.remove('hidden');
+        return;
+      }
+      document.getElementById('emptyState').classList.add('hidden');
+
+      filtered.forEach(item => {
+        grid.appendChild(createCardElement(item));
+      });
+    }
+
+    function createCardElement(item) {
+      const card = document.createElement('div');
+      card.className = "bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg card-hover flex flex-col justify-between";
+
+      const meta = item.metadata || {};
+      const isAuto = item.category === 'Automotive & Annunci Auto';
+      const isFood = item.category === 'Cucina & Alimentazione';
+      const isTech = item.category === 'AI, Tech & Software';
+
+      // Gestione immagine / anteprima
+      let mediaHtml = '';
+      if (meta.foto_urls && meta.foto_urls.length > 0) {
+        mediaHtml = `
+          <div class="h-44 w-full bg-slate-950 relative overflow-hidden">
+            <img src="${meta.foto_urls[0]}" alt="${item.title}" class="w-full h-full object-cover" loading="lazy" />
+            <span class="absolute bottom-2 right-2 px-2 py-0.5 text-[10px] font-bold bg-black/70 backdrop-blur-md rounded text-white">📸 ${meta.foto_urls.length} foto</span>
+          </div>
+        `;
+      } else {
+        const catIcons = {
+          'Automotive & Annunci Auto': '🚗',
+          'Cucina & Alimentazione': '🍳',
+          'AI, Tech & Software': '🤖',
+          'Produttività, Finanza Personale & Business': '💼',
+          'Life Hacks, Casa & Fai da Te': '💡',
+          'Notizie, Attualità & Economia': '📰',
+        };
+        const icon = catIcons[item.category] || '📌';
+        mediaHtml = `
+          <div class="h-24 w-full bg-slate-800/40 border-b border-slate-800 flex items-center justify-center text-4xl">
+            ${icon}
+          </div>
+        `;
+      }
+
+      // Badge specifici Automotive
+      let autoBadgeHtml = '';
+      if (isAuto) {
+        const tco = meta.tco_importazione || {};
+        const dePrice = meta.prezzo_eur ? Number(meta.prezzo_eur).toLocaleString('it-IT') + ' €' : '-';
+        const itPrice = tco.prezzo_finito_eur ? '~' + Number(tco.prezzo_finito_eur).toLocaleString('it-IT') + ' €' : null;
+        const km = meta.chilometraggio_km ? Number(meta.chilometraggio_km).toLocaleString('it-IT') + ' km' : '';
+        const anno = meta.anno_immatricolazione || '';
+
+        autoBadgeHtml = `
+          <div class="mt-2.5 p-2 bg-slate-950/80 rounded-xl border border-slate-800/80 text-xs space-y-1">
+            <div class="flex justify-between items-center">
+              <span class="text-slate-400">Listing Price:</span>
+              <span class="font-bold text-slate-200">${dePrice}</span>
+            </div>
+            ${itPrice ? `
+            <div class="flex justify-between items-center text-emerald-400 font-semibold">
+              <span>🇮🇹 On-the-road IT:</span>
+              <span>${itPrice}</span>
+            </div>` : ''}
+            <div class="flex justify-between items-center text-slate-400 text-[11px]">
+              <span>${anno} ${km ? '• ' + km : ''}</span>
+              ${(meta.optional_chiave || []).some(o => String(o).toLowerCase().includes('laser')) ? '<span class="text-amber-400 font-bold">✨ Laser</span>' : ''}
+            </div>
+          </div>
+        `;
+      }
+
+      // Badge specifici Cucina & Scontrini
+      let foodBadgeHtml = '';
+      if (isFood) {
+        if (meta.supermercato) {
+          foodBadgeHtml = `
+            <div class="mt-2.5 p-2 bg-emerald-950/30 rounded-xl border border-emerald-800/40 text-xs">
+              <span class="font-bold text-emerald-400">🏪 ${meta.supermercato}</span>
+              ${meta.totale_spesa_eur ? `<span class="text-slate-300 ml-2 font-mono">${Number(meta.totale_spesa_eur).toFixed(2)} €</span>` : ''}
+              ${meta.alimenti_deperibili && meta.alimenti_deperibili.length > 0 ? `
+                <p class="text-[11px] text-amber-300 mt-1">⏳ Expiring soon: ${meta.alimenti_deperibili.slice(0, 3).join(', ')}</p>
+              ` : ''}
+            </div>
+          `;
+        } else if (meta.ingredienti_principali && meta.ingredienti_principali.length > 0) {
+          foodBadgeHtml = `
+            <div class="mt-2.5 text-xs text-slate-400">
+              <span class="text-slate-300 font-medium">🥗 Ingredients:</span> ${meta.ingredienti_principali.slice(0, 4).join(', ')}
+            </div>
+          `;
+        }
+      }
+
+      // Tags
+      const tagsHtml = (item.tags || []).slice(0, 3).map(t => `<span class="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-slate-400">#${t}</span>`).join(' ');
+
+      const isChecked = selectedForCompare.some(x => x.id === item.id);
+
+      card.innerHTML = `
+        <div>
+          ${mediaHtml}
+          <div class="p-3.5">
+            <div class="flex items-start justify-between gap-2">
+              <h4 class="font-bold text-sm text-slate-100 leading-snug line-clamp-2">${item.title}</h4>
+            </div>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">${item.summary || ''}</p>
+            ${autoBadgeHtml}
+            ${foodBadgeHtml}
+            <div class="mt-3 flex flex-wrap gap-1">${tagsHtml}</div>
+          </div>
+        </div>
+
+        <div class="p-3 pt-0 border-t border-slate-800/60 mt-2 flex items-center justify-between text-xs">
+          <label class="flex items-center gap-1.5 text-slate-400 cursor-pointer select-none">
+            <input type="checkbox" onchange="toggleCompare('${item.id}')" ${isChecked ? 'checked' : ''} class="rounded border-slate-700 text-emerald-600 focus:ring-0 bg-slate-800" />
+            <span class="text-[11px]">Compare</span>
+          </label>
+          <div class="flex items-center gap-1.5">
+            ${item.source_url ? `<a href="${item.source_url}" target="_blank" class="p-1 text-slate-400 hover:text-emerald-400" title="Open source">🔗</a>` : ''}
+            <button onclick="deleteItem('${item.id}')" class="p-1 text-slate-400 hover:text-red-400" title="Delete card">🗑️</button>
+          </div>
+        </div>
+      `;
+
+      return card;
+    }
+
+    function setCategoryFilter(cat) {
+      currentCategory = cat;
+      document.querySelectorAll('.cat-pill').forEach(btn => {
+        if (btn.getAttribute('data-cat') === cat) {
+          btn.className = "cat-pill whitespace-nowrap px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-medium";
+        } else {
+          btn.className = "cat-pill whitespace-nowrap px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 font-medium";
+        }
+      });
+      renderFilteredItems();
+    }
+
+    function handleSearchInput() {
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(renderFilteredItems, 180);
+    }
+
+    function toggleCompare(itemId) {
+      const idx = selectedForCompare.findIndex(x => x.id === itemId);
+      if (idx >= 0) {
+        selectedForCompare.splice(idx, 1);
+      } else {
+        const item = allItems.find(x => x.id === itemId);
+        if (item) {
+          if (selectedForCompare.length >= 2) {
+            alert('You can compare at most 2 items at a time.');
+            renderFilteredItems();
+            return;
+          }
+          selectedForCompare.push(item);
+        }
+      }
+      updateCompareBar();
+      renderFilteredItems();
+    }
+
+    function updateCompareBar() {
+      const bar = document.getElementById('compareBar');
+      const countLabel = document.getElementById('compareCountLabel');
+      const btn = document.getElementById('btnOpenCompare');
+
+      if (selectedForCompare.length > 0) {
+        bar.classList.remove('hidden');
+        countLabel.textContent = `${selectedForCompare.length} selected`;
+        btn.disabled = selectedForCompare.length !== 2;
+      } else {
+        bar.classList.add('hidden');
+      }
+    }
+
+    function clearComparison() {
+      selectedForCompare = [];
+      updateCompareBar();
+      renderFilteredItems();
+    }
+
+    function openComparisonModal() {
+      if (selectedForCompare.length !== 2) return;
+      const [a, b] = selectedForCompare;
+      const modal = document.getElementById('compareModal');
+      const content = document.getElementById('compareContent');
+
+      const metaA = a.metadata || {};
+      const metaB = b.metadata || {};
+
+      content.innerHTML = `
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div class="p-3 bg-slate-800/80 rounded-xl border border-slate-700">
+            <h4 class="font-bold text-slate-100 text-sm">${a.title}</h4>
+            <span class="text-xs text-slate-400">${a.category}</span>
+          </div>
+          <div class="p-3 bg-slate-800/80 rounded-xl border border-slate-700">
+            <h4 class="font-bold text-slate-100 text-sm">${b.title}</h4>
+            <span class="text-xs text-slate-400">${b.category}</span>
+          </div>
+        </div>
+
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-slate-700 text-slate-400 font-semibold">
+              <th class="py-2">Attribute</th>
+              <th class="py-2">Item A</th>
+              <th class="py-2">Item B</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800">
+            <tr>
+              <td class="py-2.5 text-slate-400 font-medium">Listing Price</td>
+              <td class="py-2.5 font-bold text-slate-200">${metaA.prezzo_eur ? Number(metaA.prezzo_eur).toLocaleString() + ' €' : '-'}</td>
+              <td class="py-2.5 font-bold text-slate-200">${metaB.prezzo_eur ? Number(metaB.prezzo_eur).toLocaleString() + ' €' : '-'}</td>
+            </tr>
+            <tr>
+              <td class="py-2.5 text-emerald-400 font-medium">🇮🇹 Total Import Cost (IT)</td>
+              <td class="py-2.5 font-bold text-emerald-400">${metaA.tco_importazione?.prezzo_finito_eur ? '~' + Number(metaA.tco_importazione.prezzo_finito_eur).toLocaleString() + ' €' : '-'}</td>
+              <td class="py-2.5 font-bold text-emerald-400">${metaB.tco_importazione?.prezzo_finito_eur ? '~' + Number(metaB.tco_importazione.prezzo_finito_eur).toLocaleString() + ' €' : '-'}</td>
+            </tr>
+            <tr>
+              <td class="py-2.5 text-slate-400 font-medium">Mileage</td>
+              <td class="py-2.5">${metaA.chilometraggio_km ? Number(metaA.chilometraggio_km).toLocaleString() + ' km' : '-'}</td>
+              <td class="py-2.5">${metaB.chilometraggio_km ? Number(metaB.chilometraggio_km).toLocaleString() + ' km' : '-'}</td>
+            </tr>
+            <tr>
+              <td class="py-2.5 text-slate-400 font-medium">Year / Model</td>
+              <td class="py-2.5">${metaA.anno_immatricolazione || '-'} (${metaA.carrozzeria_generazione || metaA.modello || '-'})</td>
+              <td class="py-2.5">${metaB.anno_immatricolazione || '-'} (${metaB.carrozzeria_generazione || metaB.modello || '-'})</td>
+            </tr>
+            <tr>
+              <td class="py-2.5 text-slate-400 font-medium">Key Options / Laser</td>
+              <td class="py-2.5">${(metaA.optional_chiave || []).join(', ') || '-'}</td>
+              <td class="py-2.5">${(metaB.optional_chiave || []).join(', ') || '-'}</td>
+            </tr>
+            <tr>
+              <td class="py-2.5 text-slate-400 font-medium">Superbollo Tax</td>
+              <td class="py-2.5 text-emerald-400">${metaA.tco_importazione?.superbollo_esente ? '🛡️ Exempt (135 kW)' : '-'}</td>
+              <td class="py-2.5 text-emerald-400">${metaB.tco_importazione?.superbollo_esente ? '🛡️ Exempt (135 kW)' : '-'}</td>
+            </tr>
+          </tbody>
+        </table>
+      `;
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeComparisonModal() {
+      document.getElementById('compareModal').classList.add('hidden');
+    }
+
+    async function deleteItem(id) {
+      if (!confirm('Do you really want to delete this card?')) return;
+      try {
+        const res = await fetch(`/api/dashboard/delete/${id}`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+        });
+        if (res.ok) {
+          allItems = allItems.filter(x => x.id !== id);
+          selectedForCompare = selectedForCompare.filter(x => x.id !== id);
+          updateCompareBar();
+          renderFilteredItems();
+        } else {
+          alert('Failed to delete item.');
+        }
+      } catch (e) {
+        alert('Connection error.');
+      }
+    }
+
+    // Initial load
+    loadItems();
+  </script>
+</body>
+</html>
+
