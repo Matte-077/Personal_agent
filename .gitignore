@@ -1,0 +1,46 @@
+# Variabili d'ambiente e segreti
+.env
+*.env
+!.env.example
+
+# Byte-compiled / cache Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Ambienti virtuali
+venv/
+.venv/
+env/
+ENV/
+
+# Download e file multimediali temporanei
+downloads/
+temp/
+data/
+*.db
+*.sqlite
+*.sqlite3
+*.mp4
+*.mp3
+*.wav
+*.jpg
+*.jpeg
+*.png
+*.webp
+scratch/
+
+# IDE, Agent e OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+.agents/
+.gemini/
+*.log
+*.bak
+*.tmp
