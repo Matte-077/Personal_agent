@@ -17,10 +17,10 @@
 An autonomous 24/7 AI-powered personal assistant and digital second brain that ingests videos, articles, receipts, and voice notes directly through Telegram, complete with a dark-mode web dashboard.
 
 > [!IMPORTANT]
-> ### 💸 100% Free to Run — Zero Cloud Costs (.00 / month)
-> This project is engineered specifically to operate **100% free of charge**, fitting comfortably within the **permanent, generous free tiers of every service used** — **no credit card required, zero subscriptions, and zero hidden fees**:
-> - **Google Gemini 3.1 Flash Lite:** Permanent free tier with **15 requests/min and 1,500 requests/day** for multimodal video/audio analysis and dense 768-dim vector embeddings (personal usage typically requires ~20–50 requests/day, leaving over 95% of the free quota untouched).
-> - **Render Free Web Service:** **750 free instance hours per month** (a full month has 720–744 hours), granting 24/7 continuous cloud operation kept awake with an automated free 10-minute heartbeat ping.
+> ### 💸 100% Free to Run — Zero Cloud Costs ($0.00 / month)
+> This project is engineered specifically to operate **100% free of charge**, fitting comfortably within the **permanent, generous free tiers of every service used**:
+> - **Google Gemini 3.1 Flash Lite:** Permanent free tier with **15 requests/min and 500 requests/day** (personal usage typically requires ~20–50 requests/day, leaving over 95% of the free quota untouched).
+> - **Render Free Web Service:** **750 free instance hours per month**, granting 24/7 continuous cloud operation kept awake with an automated free 10-minute heartbeat ping.
 > - **Supabase Cloud Database:** **Free 500 MB PostgreSQL database + 1 GB file storage** with native pgvector included (easily accommodates tens of thousands of cards, metadata, and compressed WebP photos).
 > - **Telegram Bot Platform:** **100% free with unlimited messages**, instant webhook delivery, and zero platform fees.
 > - **Edge-TTS Neural Voice:** Microsoft Edge neural speech synthesis with **zero API keys and zero cost**.
@@ -31,45 +31,25 @@ An autonomous 24/7 AI-powered personal assistant and digital second brain that i
 ## 🏗️ Architecture Overview
 
 ```
-
 [ Smartphone (Instagram / TikTok / YouTube / mobile.de / Voice / Receipts) ]
-
                                       │
-
                                       ▼ (Direct Share or Audio / Photo)
-
                         [ Telegram Bot Gateway ] (100% Free)
-
                                       │
-
           ┌───────────────────────────┴───────────────────────────┐
-
           ▼ (Cloud: Webhook 24/7 - $0.00/mo)                      ▼ (Local PC: Long-Polling - $0.00/mo)
-
 [ Render Free Web Service ]                             [ Local PC / Mini PC / Home Server ]
-
   - Free Tier (750 free hrs/mo = 24/7)                    - Zero router configuration required
-
   - Always active via 10-min heartbeat                    - Catch-Up on Boot (Buffered messages processed)
-
   - Cloud WebApp (/app)                                   - Local SQLite Database (data/agente.db)
-
   - Supabase Database (Free 500 MB + pgvector)            - In-memory vector search (<85ms)
-
           │                                                       │
-
           └───────────────────────────┬───────────────────────────┘
-
                                       ▼
-
                        [ Google Gemini Flash Lite AI ]
-
-                        - 100% Free Tier (1,500 requests/day)
-
+                        - 100% Free Tier (500 requests/day)
                         - Multimodal Video & Voice Analysis
-
                         - Structured Knowledge & Vector Search
-
 ```
 
 ---
@@ -134,32 +114,6 @@ An autonomous 24/7 AI-powered personal assistant and digital second brain that i
 
 - **100% Offline Database:** Optional local SQLite database with fast vector search and local Ollama AI support for total privacy.
 
-### 💸 8. 100% Zero Running Cost & Privacy by Design
-
-The entire architecture is strictly engineered to **operate completely free of charge by fitting 100% within the permanent free-tier limits of all services used**:
-
-| Service / Component | Free Tier Allowance | Personal Assistant Daily Usage | Monthly Cost |
-
-| :--- | :--- | :--- | :--- |
-
-| **Google Gemini Flash Lite** | 1,500 requests/day & 15 RPM | ~20–50 requests/day | **0.00 € / $0.00** |
-
-| **Render Web Service** | 750 free hours/month | 720–744 hours/month (24/7 continuous) | **0.00 € / $0.00** |
-
-| **Supabase (PostgreSQL + pgvector)** | 500 MB DB & 1 GB Storage | ~20–50 MB for thousands of cards | **0.00 € / $0.00** |
-
-| **UptimeRobot / Cron-Job.org** | 50 free monitors / unlimited pings | 1 HTTP ping every 10 min | **0.00 € / $0.00** |
-
-| **Telegram Bot Platform** | Unlimited messages & WebApp hosting | Single personal whitelist | **0.00 € / $0.00** |
-
-| **Edge-TTS Neural Voice** | Unlimited public synthesis | On-demand voice notes | **0.00 € / $0.00** |
-
-| **Local Mode (SQLite + Ollama)** | Self-hosted on your machine | 100% offline & autonomous | **0.00 € / $0.00** |
-
-- **No Credit Card Required:** You can set up the entire stack using free accounts across Google AI Studio, Render, and Supabase without ever entering payment information.
-
-- **Strict User Whitelist:** Only Telegram user IDs listed in `ALLOWED_TELEGRAM_USER_IDS` are permitted to interact with the bot; unauthorized requests are rejected immediately to protect your privacy and API quotas.
-
 ---
 
 ## 💬 Bot Commands & Interactions
@@ -167,15 +121,10 @@ The entire architecture is strictly engineered to **operate completely free of c
 ### Commands
 
 | Command | Aliases | Description |
-
 |---|---|---|
-
 | `/start`, `/help` | - | Overview, capabilities guide, and quick examples |
-
 | `/dashboard` | `/app` | Opens the Telegram Mini App or generates a 48h signed Desktop Web link |
-
 | `/pillola` | `/impara`, `/ripasso` | Spaced repetition flashcard from saved tips & notes |
-
 | `/elimina <keyword>` | `/cancella` | Searches and soft-deletes cards with a confirmation prompt |
 
 ### Instant Ingestion (Just send it to the chat)
